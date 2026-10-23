@@ -30,7 +30,7 @@ Télécharge le dernier `subnet-x.y.z.apk` dans les [Releases](../../releases) e
 
 ## Compiler
 
-GitHub Actions compile et teste à chaque push ; une étiquette `vX.Y.Z` publie une release avec l'APK.
+GitHub Actions compile et teste à chaque push sur `main`, puis publie (ou met à jour) la release `v` + contenu du fichier `VERSION`. Pour sortir une nouvelle version, change `VERSION`.
 En local : `./gradlew assembleRelease` (JDK 17 et SDK Android requis).
 
 L'APK est signé avec la clé `app/subnet-release.jks` versionnée dans le dépôt, pour que chaque build

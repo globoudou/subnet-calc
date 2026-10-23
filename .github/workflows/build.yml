@@ -3,7 +3,6 @@ name: Build APK
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -26,11 +25,7 @@ jobs:
       - name: Numéro de version
         run: |
           echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "VERSION_NAME=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
-          else
-            echo "VERSION_NAME=0.0.${{ github.run_number }}-dev" >> "$GITHUB_ENV"
-          fi
+          echo "VERSION_NAME=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_ENV"
 
       - name: Tests unitaires et APK signé
         run: ./gradlew --no-daemon testDebugUnitTest assembleRelease
@@ -43,9 +38,14 @@ jobs:
           name: subnet-apk
           path: subnet-*.apk
 
+      # Chaque push sur main publie (ou met à jour) la release correspondant au fichier VERSION.
       - name: Publier la release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION_NAME }}
+          name: Subnet ${{ env.VERSION_NAME }}
+          target_commitish: ${{ github.sha }}
           files: subnet-*.apk
           generate_release_notes: true
+          make_latest: true
